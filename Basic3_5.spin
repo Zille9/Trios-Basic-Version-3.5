@@ -715,14 +715,9 @@ pri import(mode)|i,adr
 
 con '************************************* Basic beenden **************************************************************************************************************************
 PRI ende
-   'errortext(9,0)
-   'ios.ram_wrbyte(0,SMARK_RAM)                                                  'Start-Parameter-Flag löschen
    ios.admreset
    ios.belreset
    reboot
-   'TMRS.stop
-   'mount
-   'ios.stop
 
 con'**************************************** Basic-Zeile aus dem Speicher lesen und zur Abarbeitung uebergeben ********************************************************************
 PRI doline(s) | c,i,xm
