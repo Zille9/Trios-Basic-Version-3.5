@@ -6,7 +6,7 @@ und wurde um folgende Funktionen erweitert:
 -Basic-Programmspeicher 128kB im E-Ram
 -Gleitkomma-Arithmetik
 -Stringfunktionen
--bis zu dreidimensionala Arrays (Variablen, Strings)
+-bis zu dreidimensionale Arrays (Variablen, Strings)
 -verschiedene Grafikmodi (Mode 0 - Mode 2), zwischen denen wärend der Programmausführung gewechselt werden kann
 -Tile-Grafik mit bewegten Tiles
 -Pixelgrafik (Mode 1 und 2) mit bis zu 64 Farben (Mode2) 
