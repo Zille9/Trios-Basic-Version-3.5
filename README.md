@@ -1,5 +1,5 @@
-# Trios-Basic
-Basic-Interpreter for Hive-Retrocomputer
+# Trios-Basic For Hive-Retrocomputer
+
 Stark erweiterter Basic-Interpreter für Hive-Retrocomputer basierend auf dem Parallax-Propeller Chip P8X32A. Der Quellcode baut auf dem ursprünglichen Femto-Basic auf
 und wurde um folgende Funktionen erweitert:
 
