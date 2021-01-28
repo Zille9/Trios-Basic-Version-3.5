@@ -1,6 +1,6 @@
-# Trios-Basic For Hive-Retrocomputer
+# Trios-Basic For Hive-Retrostyle-Computer
 
-Stark erweiterter Basic-Interpreter für Hive-Retrocomputer basierend auf dem Parallax-Propeller Chip P8X32A. Der Quellcode baut auf dem ursprünglichen Femto-Basic auf
+Stark erweiterter Basic-Interpreter für Hive-Retrostyle-Computer basierend auf dem Parallax-Propeller Chip P8X32A. Der Quellcode baut auf dem ursprünglichen Femto-Basic auf
 und wurde um folgende Funktionen erweitert:
 
 -Basic-Programmspeicher 128kB im E-Ram
