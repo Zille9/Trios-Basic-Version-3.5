@@ -308,80 +308,7 @@ PUB main | zeichen,n,i,x,y ,speed,bs                             'chip: kommando
         gc#BEL_RECT             : rect(sub_getword,sub_getword,sub_getword,sub_getword,bus_getchar,bus_getchar)
         gc#BEL_BIGFONT          : vga.bigfont(bus_getchar)                                                                      'Umschaltung Fontsatz
 
-      {
-        1: bus_putchar(keyb.gotkey)                                                                      '1: Tastaturstatus senden
-        2: key_code                                                                                      '2: Tastaturzeichen senden
-        3: vga.sety(bus_getchar)
-        4: bus_putchar(keycode >> 8)                                                                     '4: Statustasten ($100..$1FF) abfragen
-        5: displaymouse                                                                                  '5: Mousezeiger anzeigen
-        6: vga.printqChar(@tileset[bus_getchar*16])                                                                   '6: zeichen ohne steuerzeichen ausgeben
-        7: bus_putchar(keyb.taster)
-           keyb.clearkeys
-        8: vga.setx(bus_getchar)                                                                         '8: x-position setzen
-        9: mousebound                                                                                    '9: mousebereich eingrenzen
-       10: bus_putchar(XPOS>>4)                                                                          '10:abfrage absulute x-position
-       11: bus_putchar(YPos>>4)                                                                          '11:abfrage absulute y-position
-       12: sub_putlong(mouse.abs_z)                                                                      '12:abfrage absulute z-position (Scrollrad)
-       13: keyb.clearkeys                                                                                'tastaturpuffer loeschen
-       14: mouse_button(bus_getchar)                                                                     '14:abfrage Mouse Button
-       15: BoxSize                                                                                       '15:BoxSize
-       16: bus_putchar(linelen)                                                                          '16 Zeilenlänge in diesem Treiber
-       17: vga.printCursorRate(bus_getchar)
-       18: PrintBoxColor
-       19: destroy_Button
-       20: scrollup
-       21: scrolldown
-       22: display3DBox
-       23: display3DFrame
-       24: display2DBox
-       25: Get_Button_Param
-       26: scrollString
-'       27: displayString                                                                                 'String mit Propellerfont darstellen
-       28: vga.dritte_Farbe(bus_getchar)                                                                 '3.Tilefarbe
-       30: mousepointer
-       31: vga.printat(bus_getchar,bus_getchar)
-       32: displayTile
-       33: vga.printwindow(bus_getchar)
-       35: loadtile                                                                                      'Tiledatei in Puffer laden
-       36: displaypic                                                                                    'komplette Tile-Datei anzeigen
-       37: bus_putchar(vga.getx)                                                                         'Cursor-X-Position abfragen
-       38: bus_putchar(vga.gety)                                                                         'Cursor-Y-Position abfragen
-       39: line(sub_getword,sub_getword,sub_getword,sub_getword,bus_getchar,bus_getchar)                             'x,y,xx,yy,farbe
-       40: plot
-       41: Sprite_Parameter                                                                              'Sprite-Parameter
-       42: Set_Sprite_XY                                                                                 'Sprite bewegen
-       43: Actor_Parameter                                                                               'Player-Parameter
-       44: actorxy(bus_getchar)                                                                          'Player bewegen
-       45: Set_Action_Key                                                                                'spielertasten
-       46: Reset_Sprite                                                                                  'Sprite anhalten/loeschen
-       47: SpriteMove                                                                                    'spritebewegung aktivieren/deaktivieren
-       48: speed:=bus_getchar                                                                            'spritegeschwindigkeit
-       49: bus_putchar(collision)                                                                        'Kollisionsflag abfragen
-              collision:=0
-       50: Get_Actor_Pos                                                                                 'Playerposition
-       51: Get_Block                                                                                     'Tile lesen
-'       52: Fire_Parameter
-'       53: Fire
-       54: Displaypalette                                                                                'Farbpalette anzeigen
-       55: Del_Window                                                                                    'Fensterparameter löschen
-       56: Set_Titel_Status                                                                              'Titeltext oder Statustext in einem Fenster setzen
-       57: Backup_Restore_area(1)                                                                        'Bildschirmbereich sichern
-       58: Backup_Restore_area(0)                                                                        'Bildschirmbereich wiederherstellen
-       59: Window                                                                                        'Fensterstil erstellen
-       60: get_window                                                                                    'Tastendruck im Fenster abfragen
-       61: Change_Backuptile                                                                             'Backuptile unter dem Player ändern (Itemsammeln)
-       63: vga.put(@tileset[bus_getchar*16],bus_getchar,bus_getchar)
-       65: rect(sub_getword,sub_getword,sub_getword,sub_getword,bus_getchar,bus_getchar)
-       66: vga.bigfont(bus_getchar)                                                                      'Umschaltung Fontsatz
-       }
-'******************* Versuch, den Einbau einer Playerschussfunktion ***************************************************************************************
-       '70: 'Schuss 1
-       '71: 'Schuss 2
-'       ----------------------------------------------  CHIP-MANAGMENT
-       '96: mgr_getcogs                                                                                   'freie cogs abfragen
-       '87: mgr_load                                                                                      'neuen bellatrix-code laden
-       '98: sub_putlong(Bel_Treiber_Ver)                                                                  'Rückgabe Grafiktreiber 64
-       '99: reboot                                                                                        'bellatrix neu starten
+
         gc#BMGR_LOAD        : mgr_load                                                                   'neuen bellatrix-code laden
         'gc#BMGR_FLASHLOAD   : flash_loader
         gc#BMGR_GETCOGS     : mgr_getcogs                                                                'freie cogs abfragen
@@ -718,35 +645,6 @@ pub Window|win,f1,f2,f3,f4,f5,f6,f7,f8,x,y,xx,yy,modus,a,b,c,d,posi,shd
         wind[posi++]:=f7
         wind[posi++]:=f8
 
-
-{pub PrintFont|win,f1,f2,f3,x,y,offset,posi,len,c,of,off
-        win:=bus_getchar                                                                                 'fensternummer
-        f1:=bus_getchar                                                                                  'farbe1            'vordergrund
-        f2:=bus_getchar                                                                                  'farbe2            'hintergrund
-        f3:=bus_getchar                                                                                  'farbe3            'titel und statusfarbe,cursorfarbe
-        y:=bus_getchar                                                                                   'y
-        x:=bus_getchar                                                                                   'x
-        offset:=bus_getchar                                                                              'offset für Zeichensätze, wo die Buchstaben vor der Nummer 32 anfangen
-        len:=bus_getchar
-        of:=1
-        off:=1
-        posi:=win*14
-        if wind[posi+1]==1 or wind[posi+1]==3                                                            'Fenster ohne Rahmen benutzen keinen x-Offset, dh.man kann bis an den Rand schreiben
-           of:=0
-        if wind[posi+1]==1                                                                               'Fenstertyp 1 benutzt auch keinen y-Offset
-           off:=0
-        x:=x+wind[posi+2]+of
-        y:=y+wind[posi+3]+off
-        repeat len
-               c:=bus_getchar-offset
-               if y>wind[posi+5]-of
-                  y:=wind[posi+5]-of
-               vga.displaytile(@tileset[c*16],f1,f2,f3, y, x)
-               x++
-               if x>wind[posi+4]-of
-                  x:=wind[posi+2]+of
-                  y++
-}
 pri Set_Titel_Status|win,Tit_Stat,len,posi,x,y                                                           'Titel-oder Statustext in einem Fenster setzen
 
     win     :=bus_getchar                                                                                'fensternummer
@@ -951,10 +849,6 @@ pub setpos(y,x)
     x:=bus_getchar
     vga.printat(y,x)
 
-{PUB pchar(c)                                                                                             'screen: zeichen auf bildschirm ausgeben
-{{zeichen auf bildschirm ausgeben}}
-    vga.printqChar(c)
-}
 PUB scrollup | lines,farbe,y,x,yy,xx,rate
         lines:=bus_getchar
         farbe:=bus_getchar
@@ -1038,15 +932,6 @@ pub scrollString|rate,vorder,hinter,y,x,xx,i,len',dir
     vga.scrollstring(@strkette,rate, vorder, hinter, y, x, xx)
     bytefill(@strkette,0,40)                                                                             'stringbuffer wieder loeschen
 
-{pub displayString|i,len
-    len   :=bus_getchar
-    i:=0
-    repeat len
-         byte[@strkette][i++]:=bus_getchar
-    byte[@strkette][i]:=0
-
-    vga.displaystring(@strkette)
-}
 pub displayTile|pcol,scol,tcol,y,x                                                                       'einzelnes Tile anzeigen
      tnr:=bus_getchar
     pcol:=bus_getchar
