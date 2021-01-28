@@ -589,7 +589,6 @@ PRI init |pmark,newmark,x,y,i
 
   'READ_PARAMETER                                                                   'eventuelle Startparameter einlesen
   Big_Font:=0
-  'ios.seropen(9600)
 
 pri Mode_Ready
 
@@ -3807,57 +3806,7 @@ pri buttonparameter(sl,adr):c|i                                                 
           ios.paradel                                                           'Startparameter löschen
        ios.ram_wrbyte(222,SMARK_RAM)                                            'Startparameter-Marker löschen
 }
-con'******************************************* Online-Hilfe ****************************************************************************************************************
-{pri Show_help(len)|a,i
-    if len
-       a:=spaces                                                                'Anfangsbuchstabe lesen
 
-    if len==0
-       repeat i from 65 to 90                                                   'Alle verfügbaren Befehle anzeigen
-            if i==82
-               ios.keywait                                                      'auf Tastendruck warten
-            Put_Help_words(i)
-    if a=<122
-       Put_Help_words(a)
-    if a=>128
-       a-=128
-       mount
-       sdset(@help)                                                             'ins help verzeichnis wechseln
-       ios.sdopen("R",@@toks[a])                                                'gesuchte Hilfedatei öffnen
-       ios.printBoxColor(0,blue,hintergr)                                       'Hilfetext in anderer Farbe darstellen
-       read_txtfile                                                             'Hilfedatei ausgeben
-       ios.printBoxColor(0,farbe,hintergr)                                      'Farben zurücksetzen
-       activate_dirmarker(basicmarker)                                          'zurück ins Basicverzeichnis
-       close
-    ios.printnl
-
-pri put_help_words(st)|c,ntok,i,z                                'zeigt alle mit dem, als Suchbegriff eingegebenen Buchstaben vorhandenen Befehle an
-
-    if st>96
-       st-=32
-    repeat i from 0 to 126
-           bytemove(@tline,@@toks[i],strsize(@@toks[i]))
-           c:=tline[0]
-           if c==st
-              ios.print(@@toks[i])
-              ios.print(string("  "))
-              if ios.getx>33
-                 ios.printnl
-
-
-pri read_txtfile|c
-      repeat
-          c:=ios.sdgetc
-          if c==10                                            'return oder linefeed nicht als zeichen anzeigen
-             next
-          ios.printchar(c)                                    'text anzeigen
-      until ios.sdeof                                         'ausgabe bis eof
-ios.sdclose
-
-pri sdset(str)                                         'Verzeichniswechsel
-    ios.sdchdir(str)
-    ios.sddmset(str)
-}
 DAT
 
 {{

@@ -214,58 +214,7 @@ PUB main | zeichen,a,b,c                             'chip: kommandointerpreter
         gc#BMGR_GETVER          : mgr_bel                                                                                       'Rückgabe Grafiktreiber 64
         gc#BMGR_REBOOT          : reboot                                                                                        'bellatrix neu starten
 
-{
-            1: key_stat                                                                                      '1: Tastaturstatus senden
-            2: key_code                                                                                      '2: Tastaturzeichen senden
-            3: cursor_rest
-               y_pos:=bus_getchar*8
-            4: key_spec                                                                                      '4: Statustasten ($100..$1FF) abfragen
-            6: qchar(bus_getchar)                                                                            'char ohne Steuerzeichen
-            7: bus_putchar(keyb.taster)
-               keyb.clearkeys
-            8: cursor_rest
-               x_pos:=bus_getchar*8                                                                             '8: x-position setzen
-           12: vga.CLS(hintergrund)
-               vga.plotbox(hintergrund,0,0,159,119)
-           13: keyb.clearkeys                                                                                'tastaturpuffer loeschen
-           16: bus_putchar(linelen)                                                                          '16 Zeilenlänge in diesem Treiber
-           17: cursor:=bus_getchar & 1                                                                       'Cursor On/Off
-           18: a:=bus_getchar
-               vordergrund:=bus_getchar                                                                     'Vorder-und Hintergrundfarbe
-               hintergrund:=bus_getchar
-              'wordfill(@colors,vordergrund << 8 | hintergrund,tiles)
-           20: vga.scrollup(bus_getchar,bus_getchar,hintergrund)
-           21: vga.scrolldown(bus_getchar,bus_getchar,hintergrund)
-           25: redefine
-           31: locate(bus_getchar,bus_getchar)                                                              'Locate
-           32: a:=ptest(bus_getword,bus_getword)
-               bus_putchar(a)                                                                               'PTest, testet, ob ein Pixel gesetzt ist
-           37: bus_putchar(x_pos/8)                                                                                          'Cursor-X-Position abfragen
-           38: bus_putchar(y_pos/8)                                                                                          'Cursor-Y-Position abfragen
-           39: line(bus_getword,bus_getword,bus_getword,bus_getword,bus_getchar,bus_getchar)                            'line
-           40: Plot(bus_getword,bus_getword,bus_getchar)                                                    'Plot
-           41: circle(sub_getword,sub_getword,sub_getword,sub_getword,bus_getchar,bus_getchar)                          'Kreis
-           42: rect(bus_getword,bus_getword,bus_getword,bus_getword,bus_getchar,bus_getchar)                             'Rect
-           54: bus_getchar                                                                                  'Displaypalette existiert nicht ->dummy-bytes
-               bus_getchar
-           63: putchar(bus_getchar,bus_getchar,bus_getchar)
-          '64: bmp_load'(bus_getchar,bus_getchar,bus_getchar,bus_getchar)
-          '65: bmp_save
-           66: a:=bus_getword
-               b:=bus_getword
-               c:=a+b*160
-               bus_putchar(vga.displaypoint(c))
-           67: a:=bus_getword
-               b:=bus_getchar
-               vga.pointdisplay(a,b)
-           68: a:=bus_getword
-               BMP_SHOW(a)
-'       ----------------------------------------------  CHIP-MANAGMENT
-           96: mgr_getcogs                                                                                   'freie cogs abfragen
-           87: mgr_load                                                                                      'neuen bellatrix-code laden
-           98: mgr_bel                                                                                       'Rückgabe Grafiktreiber 64
-           99: reboot                                                                                        'bellatrix neu starten
-}
+
 
 PUB init_subsysteme|i',x,y,tn,tmp                                   'chip: initialisierung des bellatrix-chips
 ''funktionsgruppe               : chip
@@ -279,8 +228,6 @@ PUB init_subsysteme|i',x,y,tn,tmp                                   'chip: initi
 
 
   dira := db_in                                                                                          'datenbus auf eingabe schalten
-'  outa[24]:=0
-'  outa[22.20]:=%111
   outa[bus_hs] := 1                                                                                      'handshake inaktiv
 
   keyb.start(keyb_dport,keyb_cport)                                                                      'tastaturport starten
@@ -355,17 +302,7 @@ pub BMP_SHOW(count)|i
     repeat count
            vga.pointdisplay(i++,bus_getchar)
 
-{PUB BMP_Load|i,n
-    i:=0
-    repeat 4800
-         n:=sub_getlong
-         vga.displaylong(i++,n)
-}
-{PUB BMP_SAVE|i
-    i:=0
-    repeat 4800
-         sub_putlong(vga.readdisplaylong(i++))
-}
+
 PUB putchar(character,x,y)| x1,y1,c,i'' 12 Stack Longs
 
 '' ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐

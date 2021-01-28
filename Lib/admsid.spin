@@ -63,7 +63,6 @@ COG's           : MANAGMENT     1 COG
                   FAT/RTC       1 COG
                   SIDCog's      1 COG's (dynamisch)-Sig.gen
                   DMP/Tracker   1 COG   (dynamisch)
-                  DCF-Empfänger 1 COG
                   PLEXBUS       1 COG
                   Sig.gen      (1) COG  (dynamisch)-SidCog
                   Flash         1 COG
@@ -172,7 +171,6 @@ OBJ
                 ser             : "RS232_ComEngine"
                 plx             : "adm-plx"
                 gc              : "glob-con"
-                'dcf             : "dcf77"          'Funkuhrmodul  spiDO         = 12                                     ' microSD pins
                 num             : "glob-numbers"   'Number Engine
                 signal          : "PropellerSignalGenerator"
                 flash           : "Winbond_Driver_neu"
@@ -202,7 +200,6 @@ VAR
   byte  s1buffer[25]                                    'registerpuffer sid1
   byte  s2buffer[25]                                    'registerpuffer sid2
 
-  byte  dcfon                                           'DCF-Betriebsmerker
                                                         '(zum Socket mit dem Handle 2 gehört der Pufferabschnitt aus bufidx[2])
   byte  bufrx[rxlen]'*sock#sNumSockets]                   'LAN Empfangspuffer fungiert auch als Kopierpuffer
   byte  buftx[txlen]'*sock#sNumSockets]                   'LAN Sendepuffer
@@ -314,30 +311,7 @@ PUB main | cmd,err,a ,b,c,d,e,f,g,sy,tmp                'chip: kommandointerpret
         gc#a_rtcPauseForSec: rtc_pauseForSeconds        'Pauses execution for a number of seconds. Returns a puesdo random value derived from the current clock frequency and the time when called. Number - Number of seconds to pause for between 0 and 2,147,483,647.
         gc#a_rtcPauseForMSec: rtc_pauseForMilliseconds  'Pauses execution for a number of milliseconds. Returns a puesdo random value derived from the current clock frequency and the time when called. Number - Number of milliseconds to pause for between 0 and 2,147,483,647.
         gc#a_rtcTest: rtc_test                          'Test if RTC Chip is available
-{{
-        gc#a_DCF_INSYNC: bus_putchar(dcf.GetInSync)     'Sync-Status senden
-        gc#a_DCF_UPDATE_CLOCK: Update_Clock             'RTC Synchronisieren
-        gc#a_DCF_GETBITERROR: bus_putchar(dcf.GetBitError)   '\
-        gc#a_DCF_GETDatacount: Bus_putchar(dcf.GetDatacount)  '|
-        gc#a_DCF_GetBitNumber: bus_putchar(dcf.GetBitNumber)  ' > diverse DCF-Parameter
-        gc#a_DCF_GetBitLevel: bus_putchar(dcf.GetBitLevel)    '|
-        gc#a_DCF_GetTimeZone: bus_putchar(dcf.GetTimeZone)    '|
-        gc#a_DCF_GetActiveSet: bus_putchar(dcf.GetActiveSet)  '/
-        gc#a_DCF_start: dcf.start                       'DCF-Empfang starten
-            dcfon:=1
-        gc#a_DCF_stop: dcf.stop                         'DCF-Empfang stoppen
-            dcfon:=0
-            sy:=0                                       'Sync-Status löschen
-        gc#a_DCF_dcfon: bus_putchar(dcfon)              'Status des DCF-Empfängers
 
-        gc#a_DCF_Getseconds: bus_putchar(dcf.getseconds)
-        gc#a_DCF_GetMinutes: bus_putchar(dcf.GetMinutes)
-        gc#a_DCF_Gethours: bus_putchar(dcf.gethours)
-        gc#a_DCF_GetWeekDay: bus_putchar(dcf.GetWeekDay)
-        gc#a_DCF_GetDay: bus_putchar(dcf.GetDay)
-        gc#a_DCF_GetMonth: bus_putchar(dcf.GetMonth)
-        gc#a_DCF_GetYear: sub_putword(dcf.GetYear)
-        }}
 '       ----------------------------------------------  CHIP-MANAGMENT
         gc#a_mgrGetSpec: mgr_getspec                    'spezifikation abfragen
         gc#a_mgrALoad: mgr_aload                        'neuen code booten
@@ -799,16 +773,6 @@ PUB note2freq(note) | octave
     return (noteTable[note]>>(8-octave))
 CON ''------------------------------------------------- RTC-FUNKTIONEN
 
-{{pri Update_Clock                'RTC-mit DCF-Daten synchronisieren
-
-    rtc.setHours(dcf.GetHours)
-    rtc.setMinutes(dcf.GetMinutes)
-    rtc.setSeconds(dcf.GetSeconds)
-    rtc.setYear(dcf.GetYear)
-    rtc.setMonth(dcf.GetMonth)
-    rtc.setDate(dcf.GetDay)
-    rtc.setDay(dcf.GetWeekDay)
-}}
 pri rtc_time
     bus_putchar(rtc.getHours)
     bus_putchar(rtc.getMinutes)
