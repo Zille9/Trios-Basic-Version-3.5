@@ -150,9 +150,9 @@ PUB main | spinbin,i',ad                                    'loader: hauptroutin
       cogstop(i)
     bus_init                                            'objekt laden und ausführen
     if lflag>1
-       spinbin := load_ram($80000+((lflag-2)*$8000))
+          spinbin := load_ram($80000+((lflag-2)*$8000))
     else
-       spinbin := load(@lname)
+          spinbin := load(@lname)
     lflag:=0
     dira := db_off                                      ' datenbus auf eingabe schalten
     run(spinbin)
@@ -200,7 +200,6 @@ PRI load(fname) :progptr| rc,ii,plen                    'loader: datei in heap l
 
   sdclose
   progptr:=offset(progptr,plen)
-  return progptr
 
 {PRI Fload(adr) :progptr| rc,ii,plen,a                    'loader: datei aus Flash-Rom in heap laden
 {{load(fname) - loader: datei in heap laden}}
@@ -216,9 +215,7 @@ PRI load(fname) :progptr| rc,ii,plen                    'loader: datei in heap l
 ' bin-datei einlesen                                    ------------------------------------------------------
   progptr := @heap'[0]
   progptr := (progptr + 4) & !3
-  'sdopen("R",fname)                                     'bin-datei öffnen
 
-  'sdgetblk(plen,progptr)                                'datei --> heap
   bus_putchar1(226)
   bus_putlong1(adr)
   bus_putlong1(plen)
@@ -264,11 +261,13 @@ pri offset(ptr,len)|rc,ii
   long[ptr+len-8] := $fff9ffff
 
   return ptr
+
+CON ' SYSTEMROUTINEN
 {pub Read_Flash_Data(adr)
     bus_putchar1(222)
     bus_putlong1(adr)
-    return bus_getchar1}
-CON ' SYSTEMROUTINEN
+    return bus_getchar1
+    }
 PUB sdgetc: char                                        'sd-card: liest ein byte aus geöffneter datei
 {{sdgetc: char - sd-card: liest ein byte aus geöffneter datei}}
   bus_putchar1(SD_GETC)
@@ -366,7 +365,7 @@ sysname           byte "reg.sys", 0                         'name der systemdate
 DAT ' HEAP REGIME-KONF
 '#ifdef regime
 
-heap                    long 0[7967] 'Für eine korrekte Funktion müssen 26 Longs frei bleiben
+heap                    long 0[7966] 'Für eine korrekte Funktion müssen 26 Longs frei bleiben
 
 
 heapend

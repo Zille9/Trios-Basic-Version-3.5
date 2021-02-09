@@ -75,7 +75,7 @@ _XINFREQ     = 5_000_000
    DPL_CNT   = 1200                    ' Map-und Bildschirm-Shadow-Speicher-Zähler (40Spalten*30Zeilen=1200-Tiles)
 '*****************Speicherbereiche**********************************************
    maxstack  = 20                      ' Maximum stack tiefe fuer gosub
-   userPtr   = $1FFFF                  ' Ende Programmspeicher  128kb
+   userptr   = $1FFFF                  ' Ende Programmspeicher  128kb
    TMP_RAM   = $20000 '....$3FFFF      ' Bearbeitungsspeicher   128kb (fuer die Zeileneditierung bzw.Einfuegung von Zeilen)
    TILE_RAM  = $40000 '....$667FF      ' hier beginnt der Tile-Speicher fuer 14 Tiledateien(Modus0) oder 8 BMP-Bilder(Modus4)
    SYS_FONT  = $66800 '....$693FF      ' ab hier liegt der System-Font 11kb
@@ -521,8 +521,9 @@ PRI init |pmark,newmark,x,y,i
         ios.ram_fill(TMP_RAM,userPtr,0)                                            'Bearbeitungsspeicher loeschen
         clearall                                                                   'alle Variablen, Strings ,Window-Parameter,Mapdaten usw.löschen,Zeiger zurücksetzen
      else
-        reclaim                                                                    'Basic-Programm im Speicher wieder herstellen
+
         clearing                                                                   'nur Variablen,Strings,Mapdaten und Window-Parameter löschen
+
 '************************** Startbildschirm ***********************************************************************************************************************************
 
   '*************** Bildschirmaufbau ***********************************
@@ -1701,6 +1702,7 @@ PRI factor | tok, a,b,c,d,e,g,f,fnum                                            
       167,219,221,225: errortext(44,1)'Fehler, wenn mode>0
 
       other:
+
            errortext(1,1)
 
 pri getvar(name,tbl):ad                                                         'ermitteln der Variablen-Adresse

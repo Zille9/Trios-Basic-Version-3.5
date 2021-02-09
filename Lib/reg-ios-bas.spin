@@ -277,61 +277,22 @@ CON 'BELLATRIX-FUNKTIONEN ------------------------------------------------------
         BEL_SINIT
         BEL_TABSET
 
-CON 'Venatrix-Funktionen -------------------------------------
-#$0,    VEN_CMD
-#96,    VEN_GETCGS
-        VEN_LOAD
-        VEN_GETVER
-        VEN_REBOOT
+  SDA = 29                                                   ' boot eeprom
+  SCL = 28
+  EE_WRITE = %1010_000_0
+  EE_READ  = %1010_000_1
 
-#220,   VEN_PORT_RESET
-        VEN_PORT_WR
-        VEN_PORT_RD
-        VEN_JOYSTICK
+  PG_SIZE  = 128
 
-'                   +----------
-'                   |  +------- system     
-'                   |  |  +---- version    (änderungen)
-'                   |  |  |  +- subversion (hinzufügungen)
-CHIP_VER        = $00_01_01_01
-'
-'                                           +---------- 
-'                                           | +-------- 
-'                                           | |+------- 
-'                                           | ||+------ 
-'                                           | |||+----- 
-'                                           | ||||+---- 
-'                                           | |||||+--- 
-'                                           | ||||||+-- multi
-'                                           | |||||||+- loader
-CHIP_SPEC       = %00000000_00000000_00000000_00000001
-{
-LIGHTBLUE       = 0
-YELLOW          = 1
-RED             = 2
-GREEN           = 3
-BLUE_REVERSE    = 4
-WHITE           = 5
-RED_INVERSE     = 6
-MAGENTA         = 7
-}
-' konstante parameter für die sidcog's
-{
-scog_pal        = 985248.0
-scog_ntsc       = 1022727.0
-scog_maxf       = 1031000.0
-scog_triangle   = 16
-scog_saw        = 32
-scog_square     = 64
-scog_noise      = 128
-}
 obj
     ram_rw :"ram"
     ser    :"RS232_ComEngine"
     gc     :"glob-con"
+    i2c    :"jm_i2c"
 
 VAR
         long lflagadr                                   'adresse des loaderflag
+        long  devid                                     'EEPROM-ID
         byte strpuffer[STRCOUNT]                        'stringpuffer
         byte tmptime
         byte serial                                     'serielle Schnittstelle geöffnet?
@@ -380,6 +341,7 @@ PUB stop                                                'loader: beendet anwendu
   'ldbin(@regsys)
   'repeat
    reboot
+
 PUB paraset(stradr) | i,c                               'system: parameter --> eram
 ''funktionsgruppe               : system
 ''funktion                      : parameter --> eram - werden programme mit dem systemloader gestartet, so kann
@@ -671,17 +633,17 @@ pub wr_flashlong(adr,wert)
     bus_putlong1(adr)
     bus_putlong1(wert)
 
-pub sdtoflash(adr,count)
+pub sdtoflash(adr)',count)
     bus_putchar1(gc#a_sdtoflash)
     bus_putlong1(adr)
-    bus_putlong1(count)
+    'bus_putlong1(count)
 
 pub flxgetblk(adr,adr2,count)
     bus_putchar1(gc#a_RD_FlashBL)
-    bus_putlong1(adr2)
+    bus_putlong1(adr)
     bus_putlong1(count)
     repeat count
-           ram_wrbyte(bus_getchar1,adr++)
+           ram_wrbyte(bus_getchar1,adr2++)
 
 pub copytoflash(adr)
     bus_putchar1(gc#a_sdtoFlash)
@@ -1168,6 +1130,22 @@ pub time|h,m,s
            printchar("0")
         printdec(s)
         tmptime:=s
+
+pub Gdate|d,m,y
+      d:=getdate
+      m:=getMonth
+      y:=getyear
+        if d<10
+           printchar("0")
+        printdec(d)
+        printchar(".")
+        if m<10
+           printchar("0")
+        printdec(m)
+        printchar(".")
+        printdec(y)
+
+
 'pub ReadClock
 '    bus_putchar1(gc#a_rtcReadClock)
 {
@@ -2575,10 +2553,15 @@ PUB Dump(adr,line,mod) |zeile ,c[8] ,p,i  'adresse, anzahl zeilen,ram oder xram
   p:=getx+23
   repeat line
     printnl
-    printhex(adr,5)
+    if (mod==2)
+       printhex(adr,6)
+    else
+       printhex(adr,5)
     printchar(":")
 
     repeat i from 0 to 7
+      if mod==3
+         c[i]:=i2c_rd_byte(adr++)
       if mod==2
          c[i]:=Read_Flash_Data(adr++)
       if mod==1
@@ -2586,7 +2569,8 @@ PUB Dump(adr,line,mod) |zeile ,c[8] ,p,i  'adresse, anzahl zeilen,ram oder xram
       if mod==0
          c[i]:=byte[adr++]
       printhex(c[i],2)
-      printchar(" ")
+
+    printchar(" ")
 
     repeat i from 0 to 7
       printqchar(c[i])
@@ -2599,6 +2583,146 @@ PUB Dump(adr,line,mod) |zeile ,c[8] ,p,i  'adresse, anzahl zeilen,ram oder xram
           printnl
             quit
        zeile:=0
+
+
+con '********************************* I2C - Routinen für Farbwerte im EEPROM *****************************************************************************************************
+pub start_i2c(device)
+
+'' Setup I2C using default (boot EEPROM) pins
+'' -- device is the device address %000 - %111
+''    * %000 is boot eeprom
+
+  result:=startex(SCL, SDA, device)
+
+pub startex(sclpin, sdapin, device)
+
+'' Define I2C SCL (clock) and SDA (data) pins
+
+  i2c.setupx(sclpin, sdapin)
+
+  devid := EE_WRITE | ((%000 #> device <# %111) << 1)
+  return devid
+con '************************** I2C-Write-Funktionen ********************************
+pub i2c_wr_byte(addr, bf) | ackbit
+
+'' Write byte to eeprom
+
+  ackbit := i2c_wr_block(addr, 1, @bf)
+
+  return ackbit
+
+pub wr_word(addr, w) | ackbit
+
+'' Write word to eeprom
+
+  ackbit := i2c_wr_block(addr, 2, @w)
+
+  return ackbit
+
+
+pub wr_long(addr, l) | ackbit
+
+'' Write long to eeprom
+
+  ackbit := i2c_wr_block(addr, 4, @l)
+
+  return ackbit
+
+pub wr_str(addr, p_zstr) | ackbit, bf
+
+'' Write z-string at p_zstr to eeprom
+
+  ackbit := i2c#ACK                                             ' assume okay
+  repeat
+    bf := byte[p_zstr++]                                         ' get byte from string
+    ackbit |= i2c_wr_byte(addr++, bf)                                ' write to card
+    if (bf == 0)                                                 ' end of string?
+      quit                                                      '  yes, we're done
+
+  return ackbit
+
+pub i2c_wr_block(addr, n, p_src) | ackbit
+
+'' Write block of n bytes from p_src to eeprom
+'' -- be mindful of address/page size in device to prevent page wrap-around
+
+  i2c.wait(devid)
+  i2c.write(addr.byte[1])                                       ' msb of address
+  i2c.write(addr.byte[0])                                       ' lsb of address
+  ackbit := i2c#ACK                                             ' assume okay
+  repeat n
+    ackbit |= i2c.write(byte[p_src++])                          ' write a byte
+  i2c.stop
+
+  return ackbit
+
+pub i2c_fill(addr, n, bf) | ackbit
+
+'' Write byte b to eeprom n times, starting with at addr
+'' -- be mindful of address/page size in device to prevent page wrap-around
+
+  i2c.wait(devid)
+  i2c.write(addr.byte[1])                                       ' msb of address
+  i2c.write(addr.byte[0])                                       ' lsb of address
+  ackbit := i2c#ACK                                             ' assume okay
+  repeat n
+    ackbit |= i2c.write(bf)                                      ' write the byte
+  i2c.stop
+
+  return ackbit
+
+con '************************** I2C-Read-Funktionen ********************************
+pub i2c_rd_byte(addr) | bf
+
+'' Return byte value from eeprom
+
+  i2c_rd_block(addr, 1, @bf)
+
+  return bf & $0000_00FF                                         ' clean-up
+
+
+pub i2c_rd_block(addr, n, p_dest)
+
+'' Read block of n bytes from eeprom to address at p_dest
+'' -- be mindful of address/page size in device to prevent page wrap-around
+
+  i2c.wait(devid)
+  i2c.write(addr.byte[1])                                       ' msb of address
+  i2c.write(addr.byte[0])                                       ' lsb of address
+  i2c.start                                                     ' restart for read
+  i2c.write(devid | $01)                                        ' device read
+  repeat while (n > 1)
+    byte[p_dest++] := i2c.read(i2c#ACK)
+    --n
+  byte[p_dest] := i2c.read(i2c#NAK)                             ' last byte gets NAK
+  i2c.stop
+
+pub i2c_rd_word(addr) | w
+
+'' Return word value eeprom
+
+  i2c_rd_block(addr, 2, @w)
+
+  return w & $0000_FFFF
+
+
+pub i2c_rd_long(addr) | l
+
+'' Return long value from eeprom
+
+  i2c_rd_block(addr, 4, @l)
+
+  return l
+
+pub rd_str(addr, p_dest) | bf
+
+'' Read (arbitrary-length) z-string, store at p_dest
+
+  repeat
+    bf := i2c_rd_byte(addr++)                                        ' read byte from device
+    byte[p_dest++] := bf                                         ' write to destination
+    if (bf == 0)                                                 ' at end?
+      quit                                                      '  if yes, we're done
 
 DAT
                         org 0

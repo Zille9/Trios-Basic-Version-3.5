@@ -3,14 +3,14 @@ Iamthemagicnumber=1
 
 [Main]
 SelectedTab=0
-TreePath=Z:\Desktop\Hive\Hive-Max\Software\Librarys
-NumSubs=6
+TreePath=\\Mac\Home\Documents\GitHub\PLEXUS
+NumSubs=7
 OverrideOptimisation=0
 OptimiseFlags=0
 
 [File1]
 FileName=Z:\Documents\GitHub\Trios-Basic\Basic3_5.spin
-TopLine=418
+TopLine=1
 
 [File2]
 FileName=Z:\Documents\GitHub\Trios-Basic\Basic_mode0.spin
@@ -31,3 +31,7 @@ TopLine=1
 [File6]
 FileName=Z:\Documents\GitHub\Trios-Basic\Import.spin
 TopLine=1
+
+[File7]
+FileName=\\Mac\Home\Documents\GitHub\Trios-Basic\Lib\reg-ios-bas.spin
+TopLine=1574
