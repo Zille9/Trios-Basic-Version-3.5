@@ -48,7 +48,8 @@ Logbuch         :
                 -705 Longs frei
 
 19-02-2021      -DUMP-Befehl um EEPROM und Flash-Rom erweitert (EEPROM I2C-Treiber eingebunden)
-                -
+                -Handbuch muss noch angepasst werden
+                -590 Longs frei
  --------------------------------------------------------------------------------------------------------- }}
 
 obj
