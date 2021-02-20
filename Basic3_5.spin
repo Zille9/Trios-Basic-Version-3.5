@@ -12,19 +12,17 @@ Beschreibung    : Modifiziertes, stark erweitertes FemtoBasic für den Hive.
 Eigenschaften   : -Benutzung externer Ram, Stringverarbeitung, Array-Verwaltung
                   -Gleitkommafuktion, Tile-Grafikunterstützung
                   -SID-Sound-Unterstützung
-                  -5 Grafik-Modi
+                  -3 Grafik-Modi
                   -0=64-Farb-VGA-Treiber;
                   -1=320x256 Pixel 31-Vordergrund und 8 Hintergrundfarben;
-                  -2=512x384 Pixel 2-Farben aus 64
-                  -3=640x240 Pixel 2-Farben aus 64
-                  -4=160x120 Pixel 64 Farben pro Pixel
+                  -2=160x120 Pixel 64 Farben pro Pixel
                   -Maus-Unterstützung, Button-Verwaltung
                   -Fensterverwaltung
                   -durch Tile-Fonts, verschiedene Schriftarten und Fensterstile
                   -bewegte Tile-Sprites
                   -lange Variablennamen
                   -dynamische Variablen-Verwaltung
-                  -Pixelgrafik im Modus 1,2,3 und 4
+                  -Pixelgrafik im Modus 1 und 2
 
 Logbuch         :
 
@@ -48,6 +46,9 @@ Logbuch         :
                 -machte Probleme, wenn keine oder falsche Werte im Ram standen
                 -dadurch wieder etwas Platz gespart
                 -705 Longs frei
+
+19-02-2021      -DUMP-Befehl um EEPROM und Flash-Rom erweitert (EEPROM I2C-Treiber eingebunden)
+                -
  --------------------------------------------------------------------------------------------------------- }}
 
 obj
@@ -476,6 +477,8 @@ PRI init |pmark,newmark,x,y,i
 '*********************************** Timer-Cog starten ********************************************************************************************************
   TMRS.start(10)                                                                'Timer-Objekt starten mit 1ms-Aufloesung
 '**************************************************************************************************************************************************************
+'*********************************** EEPROM-I2C Treiber starten ***********************************************************************************************
+  ios.start_i2c(%000)
 '*********************************** Startparameter ***********************************************************************************************************
   pauseTime := 0                                                                'pause wert auf 0
   fileOpened := 0                                                               'keine datei geoeffnet
@@ -844,7 +847,7 @@ PRI getline(laenge):e | i,f, c , x,y,t,m,a                                      
 
 '******************* Funktionstasten abfragen *************************
                        157..159:'m:=159-c                                     'Nummer des GModes Alt-Gr + F1-F4
-                                Load_Gmode(159-c)                                   'Grafikmodus laden
+                                Load_Gmode(159-c)                               'Grafikmodus laden
                                 ios.print(string("OK>"))                        'Promt ausgeben
                        218:ifnot gmode
                                 loadtile(15)                                    'F11 Fontsatz zurücksetzen (nur Mode0)
@@ -1518,9 +1521,9 @@ PRI factor | tok, a,b,c,d,e,g,f,fnum                                            
                 10:b:=Gmodey[gmode]+1       'Zeilen
                 22:b:=VAR_NR                'Variablenanzahl
                 23:b:=STR_NR                'Stringanzahl
-                30:b:=ios.admgetcogs        'belegte Cogs in Administra
-                31:b:=ios.belgetcogs        'belegte Cogs in Bella
-                32:b:=ios.reggetcogs        'belegte Cogs in Regnatix
+                30:b:=ios.admgetcogs        'freie Cogs in Administra
+                31:b:=ios.belgetcogs        'freie Cogs in Bella
+                32:b:=ios.reggetcogs        'freie Cogs in Regnatix
 
            return fl.ffloat(b)
 

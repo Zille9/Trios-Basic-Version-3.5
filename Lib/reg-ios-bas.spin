@@ -2561,13 +2561,13 @@ PUB Dump(adr,line,mod) |zeile ,c[8] ,p,i  'adresse, anzahl zeilen,ram oder xram
 
     repeat i from 0 to 7
       if mod==3
-         c[i]:=i2c_rd_byte(adr++)
+         c[i]:=Read_Flash_Data(adr++)                   '-Flash
       if mod==2
-         c[i]:=Read_Flash_Data(adr++)
+         c[i]:=i2c_rd_byte(adr++)                       '-EEPROM
       if mod==1
-           c[i]:=ram_rdbyte(adr++)
+           c[i]:=ram_rdbyte(adr++)                      '-E-Ram
       if mod==0
-         c[i]:=byte[adr++]
+         c[i]:=byte[adr++]                              '-Hub-Ram
       printhex(c[i],2)
 
     printchar(" ")
