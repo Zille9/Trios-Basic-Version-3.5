@@ -59,7 +59,5 @@ F12	-BYE
 AltGr+F1-Mode 0
 AltGr+F2-Mode 1
 AltGr+F3-Mode 2
-AltGr+F4-Mode 3
-AltGr+F5-Mode 4
-63
+61
 

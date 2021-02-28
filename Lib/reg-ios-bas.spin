@@ -288,7 +288,7 @@ obj
     ram_rw :"ram"
     ser    :"RS232_ComEngine"
     gc     :"glob-con"
-    i2c    :"jm_i2c"
+    'i2c    :"jm_i2c"
 
 VAR
         long lflagadr                                   'adresse des loaderflag
@@ -1665,6 +1665,12 @@ pub scrolldown(lines, farbe, y, x, yy, xx,rate)
     bus_putchar2(xx)
     bus_putchar2(rate)
 
+pub scrollleft(y,yy)
+    bus_putchar2(gc#BEL_CMD)
+    bus_putchar2(gc#BMGR_SCROLLLEFT)
+    bus_putchar2(y)
+    bus_putchar2(yy)
+
 pub display3DFrame(topColor, centerColor, bottomColor, y, x, yy, xx)
 
     bus_putchar2(gc#BEL_CMD)
@@ -2560,10 +2566,10 @@ PUB Dump(adr,line,mod) |zeile ,c[8] ,p,i  'adresse, anzahl zeilen,ram oder xram
     printchar(":")
 
     repeat i from 0 to 7
-      if mod==3
-         c[i]:=Read_Flash_Data(adr++)                   '-Flash
-      if mod==2
-         c[i]:=i2c_rd_byte(adr++)                       '-EEPROM
+      'if mod==3
+      '   c[i]:=Read_Flash_Data(adr++)                   '-Flash
+      'if mod==2
+      '   c[i]:=i2c_rd_byte(adr++)                       '-EEPROM
       if mod==1
            c[i]:=ram_rdbyte(adr++)                      '-E-Ram
       if mod==0
@@ -2586,7 +2592,7 @@ PUB Dump(adr,line,mod) |zeile ,c[8] ,p,i  'adresse, anzahl zeilen,ram oder xram
 
 
 con '********************************* I2C - Routinen für Farbwerte im EEPROM *****************************************************************************************************
-pub start_i2c(device)
+{pub start_i2c(device)
 
 '' Setup I2C using default (boot EEPROM) pins
 '' -- device is the device address %000 - %111
@@ -2723,7 +2729,7 @@ pub rd_str(addr, p_dest) | bf
     byte[p_dest++] := bf                                         ' write to destination
     if (bf == 0)                                                 ' at end?
       quit                                                      '  if yes, we're done
-
+}
 DAT
                         org 0
 '

@@ -47,9 +47,8 @@ Logbuch         :
                 -dadurch wieder etwas Platz gespart
                 -705 Longs frei
 
-19-02-2021      -DUMP-Befehl um EEPROM und Flash-Rom erweitert (EEPROM I2C-Treiber eingebunden)
-                -Handbuch muss noch angepasst werden
-                -590 Longs frei
+19-02-2021      -Dump-Befehl nur Hub und E-Ram, das reicht
+                -710 Longs frei
  --------------------------------------------------------------------------------------------------------- }}
 
 obj
@@ -316,12 +315,13 @@ dat
    tok66 byte "SCRDN",0     'n Zeilen runterscrollen -> Scrdown(n)                          194    getestet
    tok67 byte "SCRUP",0     'n Zeilen hochscrollen   -> Scrup(n)                            195    getestet
    tok68 byte "CUR",0       'Cursor ein/ausschalten                                         196    getestet
+   tok69 byte "SCRLEFT",0   'Bildschirmausschnitt y-yy nach links scrollen                 '197
    tok45 byte "GETY",0      'y-Cursorposition                                              '173    getestet
    tok107 byte "HEX",0      'Ausgabe von Hexzahlen mit Print                               '235    getestet
    tok73 byte "BIN",0       'Ausgabe von Binärzahlen mit Print                             '201    getestet
-   tok82 byte "LINE",0      'Linie zeichnen                                                 210    getestet M0,M1,M2,M3
-   tok43 byte "RECT",0      'Rechteck                                                       171    getestet M0,M1,M2,M3
-   tok64 byte "PSET",0      'Pixel setzen                                                   192    getestet M0,M1,M2,M3
+   tok82 byte "LINE",0      'Linie zeichnen                                                 210    getestet M0,M1
+   tok43 byte "RECT",0      'Rechteck                                                       171    getestet M0,M1
+   tok64 byte "PSET",0      'Pixel setzen                                                   192    getestet M0,M1
 
 ''************************* Modus0   ***********************************************************************
    tok39 byte "WIN", 0      'Fenster C,T,S,R erstellen                                      167 *  getestet M0,M1
@@ -331,8 +331,8 @@ dat
    tok94 byte "BACKUP",0     'Bildschirmbereich sichern                                    '222    getestet M0,M1
 
 '************************* Modus1-3  ***********************************************************************
-   tok81 byte "CIRC",0      'Kreis zeichnen                                                 209    getestet M1,M2,M3
-   tok44 byte "PTEST",0     'Pixeltest                                                      172    getestet M1,M2,M3
+   tok81 byte "CIRC",0      'Kreis zeichnen                                                 209    getestet M1,M2
+   tok44 byte "PTEST",0     'Pixeltest                                                      172    getestet M1,M2
 
 '************************* Datum und Zeit funktionen ***************************************************************
    tok70 byte "STIME",0    'Stunde:Minute:Sekunde setzen ->                                 198    getestet
@@ -397,7 +397,6 @@ dat
 
 '******************************* freie Befehle für Erweiterungen **************************************************
    tok49 byte "FREI1",0       'Frei                                                           177
-   tok69 byte "FREI2",0       '                                                              '197
 
 
 '        ---------------------------- Mehr Befehle sind nicht möglich --------------------------
@@ -479,7 +478,7 @@ PRI init |pmark,newmark,x,y,i
   TMRS.start(10)                                                                'Timer-Objekt starten mit 1ms-Aufloesung
 '**************************************************************************************************************************************************************
 '*********************************** EEPROM-I2C Treiber starten ***********************************************************************************************
-  ios.start_i2c(%000)
+  'ios.start_i2c(%000)
 '*********************************** Startparameter ***********************************************************************************************************
   pauseTime := 0                                                                'pause wert auf 0
   fileOpened := 0                                                               'keine datei geoeffnet
@@ -509,9 +508,8 @@ PRI init |pmark,newmark,x,y,i
         ios.admload(@adm)                                                          'administra-code laden, springt nach dem booten ins Root (falls man aus einem Unterverzeichnis startet,
 
      activate_dirmarker(basicmarker)                                               'usermarker wieder in administra setzen
-     if ios.bel_get<>640                                                           'Basic-Grafiktreiber Mode0
-        ios.belload(@@gmodes[0])
-        Mode_Ready                                                                 'Treiber-bereit-Meldung abwarten
+     ios.belload(@@gmodes[0])                                                      'Basic-Grafiktreiber Mode0
+     Mode_Ready                                                                    'Treiber-bereit-Meldung abwarten
 
 '**************************************************************************************************************************************************************
 
@@ -525,7 +523,6 @@ PRI init |pmark,newmark,x,y,i
         ios.ram_fill(TMP_RAM,userPtr,0)                                            'Bearbeitungsspeicher loeschen
         clearall                                                                   'alle Variablen, Strings ,Window-Parameter,Mapdaten usw.löschen,Zeiger zurücksetzen
      else
-
         clearing                                                                   'nur Variablen,Strings,Mapdaten und Window-Parameter löschen
 
 '************************** Startbildschirm ***********************************************************************************************************************************
@@ -569,18 +566,21 @@ PRI init |pmark,newmark,x,y,i
   ios.set_func(0,Print_Window)
 
 '*******************************************************************************************************************************************************************************
+
   '******************************************************************************************************************************************************
   ios.sid_resetregisters                                                           'SID Reset
   ios.sid_beep(1)
+
    '************ startparameter fuer Dir-Befehl *********************************************************************************************************
   dzeilen:=18
   xz     :=2
   yz     :=4
   modus  :=2                                                                       'Modus1=compact, 2=lang 0=unsichtbar
+
    '*****************************************************************************************************************************************************
   ios.printchar(13)
   ios.printchar(13)
-  'serial:=0                                                                       'serielle Schnittstelle geschlossen
+
   '******************************************************************************************************************************************************
   ios.setactionkey(2,3,4,5,32)                                                     'Cursorsteuerung-Standardbelegung
   actionkey[0]:=2                                                                  'links
@@ -847,11 +847,11 @@ PRI getline(laenge):e | i,f, c , x,y,t,m,a                                      
                                ios.printchar(2)
 
 '******************* Funktionstasten abfragen *************************
-                       157..159:'m:=159-c                                     'Nummer des GModes Alt-Gr + F1-F4
+                       157..159:'m:=159-c                                       'Nummer des GModes Alt-Gr + F1-F4
                                 Load_Gmode(159-c)                               'Grafikmodus laden
                                 ios.print(string("OK>"))                        'Promt ausgeben
-                       218:ifnot gmode
-                                loadtile(15)                                    'F11 Fontsatz zurücksetzen (nur Mode0)
+                       218:if gmode==0
+                              loadtile(15)                                      'F11 Fontsatz zurücksetzen (nur Mode0)
                        219:ende                                                 'F12 basic beenden
                        214:i := put_command(@tok92,0)                           'F7 edit
                        215:ios.print(string("TRON"))                            'F8 TRON
@@ -877,7 +877,7 @@ PRI getline(laenge):e | i,f, c , x,y,t,m,a                                      
                            h_dir(dzeilen,modus,@ext5)                           'taste F4 DIR aufrufen
                        210:i := put_command(@tok19,0)                           'save  F3
                        209:i := put_command(@tok20,0)                           'Load  F2
-                       208:repeat a from 46 to 63                               'Funktionstastenbelegung F1
+                       208:repeat a from 46 to 61                               'Funktionstastenbelegung F1
                               errortext(a,0)
                               ios.printnl
                            return
@@ -2541,7 +2541,7 @@ PRI texec | ht, nt, restart,a,b,c,d,e,f,h,elsa,fvar,tab_typ
                         skipspaces
                         b:=expr(1)
                         if a==6
-                           if b>-1 and b<3'b<5
+                           if b>-1 and b<3
                               if gmode <> b                                              'Mode nur laden, wenn der aktuelle Grafikmodus ein anderer ist
                                  load_Gmode(b)
                         elseif a==5
@@ -2554,9 +2554,6 @@ PRI texec | ht, nt, restart,a,b,c,d,e,f,h,elsa,fvar,tab_typ
 
              171:'RECT
                   param(5)                                                      'x,y,xx,yy,farbe,fill
-                  'a:=65
-                  'if gmode
-                  '   a:=_RECT
                   ios.plotfunc(prm[0],prm[1],prm[2],prm[3],prm[4],prm[5],_RECT)      'x,y,xx,yy,set
 
 
@@ -2656,6 +2653,13 @@ PRI texec | ht, nt, restart,a,b,c,d,e,f,h,elsa,fvar,tab_typ
                    cursor:=3
                 ios.set_func(cursor,Cursor_Set)
 
+             197:'SCRLFT                                'Bildschirmausschnitt nach 1 Position nach links scrollen
+                ifnot gmode
+                      param(1)   'y,yy
+                      ios.scrollLeft(prm[0],prm[1])
+                'else
+                '      param(1)
+                '      ios.scrollup_M1(prm[0],prm[1])      'zeilen,rate
 
              198:'stime
                 a:=expr(1)

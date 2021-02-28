@@ -307,6 +307,7 @@ PUB main | zeichen,n,i,x,y ,speed,bs                             'chip: kommando
         gc#BEL_VGAPUT           : vga.put(@tileset[bus_getchar*16],bus_getchar,bus_getchar)
         gc#BEL_RECT             : rect(sub_getword,sub_getword,sub_getword,sub_getword,bus_getchar,bus_getchar)
         gc#BEL_BIGFONT          : vga.bigfont(bus_getchar)                                                                      'Umschaltung Fontsatz
+        gc#BMGR_SCROLLLEFT      : scrollLeft
 
 
         gc#BMGR_LOAD        : mgr_load                                                                   'neuen bellatrix-code laden
@@ -858,6 +859,11 @@ PUB scrollup | lines,farbe,y,x,yy,xx,rate
         xx   :=bus_getchar
         rate :=bus_getchar
         vga.scrollup(lines,farbe,y,x,yy,xx,rate)                                                         'screen: scrollt den screen nach oben
+
+PUB scrollLeft | lines,farbe,y,x,yy,xx,rate
+        y    :=bus_getchar
+        yy   :=bus_getchar
+        vga.scrollLeft(hintergr,y,0,yy,39)                                                               'screen: scrollt den screen nach links
 
 PUB scrolldown | lines,farbe,y,x,yy,xx,rate
         lines:=bus_getchar                                                                               'screen: scrollt den screen nach unten

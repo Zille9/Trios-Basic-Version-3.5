@@ -461,6 +461,34 @@ PUB scrollDown(lines, color, startRow, startColumn, endRow, endColumn,rate) '' 2
          waitcnt( cnt+=clkfreq / (1000/rate))
     drawingStop
 
+PUB scrollLeft(color, startRow, startColumn, endRow, endColumn)|a '' 24 Stack Longs
+
+'' ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'' // Scrolls the contents of whatever is in the specified area down and scrolls in blank space of the selected color.
+'' //
+'' // Color - A color byte (%RR_GG_BB_xx) to use for the background color being scrolled in.
+'' // Lines - Number of rows to scroll down. This function will do nothing if this value is invalid.
+'' // StartRow - The row to start scrolling on. Each row is 16 pixels tall so there are 30 rows numbered 0 - 29.
+'' // StartColumn - The column to start scrolling on. Each column is 16 pixels wide so there are 40 columns numbered 0 - 39.
+'' // EndRow - The row to end scrolling on. Each row is 16 pixels tall so there are 30 rows numbered 0 - 29.
+'' // EndColumn - The column to end scrolling on. Each column is 16 pixels wide so there are 40 columns numbered 0 - 39.
+'' ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+'Row=y
+'Column=x
+    endRow:=endRow*40
+    startRow:=startrow*40
+
+    color := computeFillColor(color)
+    drawingStart(startRow, startColumn, endRow, endColumn)
+    repeat result from startRow to endRow step 40
+       wordmove(@lumaBuffer[result], @lumaBuffer[result+1], 39)
+       longmove(@chromaBuffer[result], @chromaBuffer[result+1], 39)
+       longfill(@chromaBuffer[result+39],color,1)
+       'if rate>0
+       '   waitcnt( cnt+=clkfreq / (1000/rate))
+
+    drawingStop
+
 {PUB display3DTextBox(characters, textColor, topColor, centerColor, bottomColor, row, column) '' 35 Stack Longs
 
 '' ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
