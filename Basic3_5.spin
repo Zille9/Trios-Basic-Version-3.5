@@ -315,7 +315,7 @@ dat
    tok66 byte "SCRDN",0     'n Zeilen runterscrollen -> Scrdown(n)                          194    getestet
    tok67 byte "SCRUP",0     'n Zeilen hochscrollen   -> Scrup(n)                            195    getestet
    tok68 byte "CUR",0       'Cursor ein/ausschalten                                         196    getestet
-   tok69 byte "SCRLEFT",0   'Bildschirmausschnitt y-yy nach links scrollen                 '197
+   tok69 byte "SCRLEFT",0   'Bildschirmausschnitt y-yy nach links scrollen                 '197    getestet
    tok45 byte "GETY",0      'y-Cursorposition                                              '173    getestet
    tok107 byte "HEX",0      'Ausgabe von Hexzahlen mit Print                               '235    getestet
    tok73 byte "BIN",0       'Ausgabe von Binärzahlen mit Print                             '201    getestet
