@@ -49,6 +49,11 @@ Logbuch         :
 
 19-02-2021      -Dump-Befehl nur Hub und E-Ram, das reicht
                 -710 Longs frei
+
+01-04-2021      -Fehler in FOR-NEXT - Befehl ->Variablen waren zu klein dimensioniert -> in den E-Ram verschoben, dadurch wieder etwas Platz gewonnen
+                -Fehler wurde bei der Arbeit am Tiny-Basic entdeckt und von dort übernommen
+                -815 Longs frei
+
  --------------------------------------------------------------------------------------------------------- }}
 
 obj
@@ -83,8 +88,10 @@ _XINFREQ     = 5_000_000
    MOUSE_RAM = $69400 '....$6943F      ' User-Mouse-Pointer 64byte
    DIR_RAM   = $69440 '....$6AFFF      ' Puffer fuer Dateinamen 7103Bytes fuer 546 Dateinamen
    MAP_RAM   = $6B000 '....$6CC27      ' Shadow-Display (Pseudo-Kopie des Bildschirmspeichers)
-
-   'FREI_RAM   $6D000 .... $7A3FF      ' freier RAM-Bereich 54272 Bytes (53kB)
+   FOR_LOOP  = $6D000 '.... $6DFFF     ' For-Loop Speicher
+   FOR_STEP  = $6E000 '.... $6EFFF     ' FOR-Step Speicher
+   FOR_LIMIT = $6F000 '.... $6FFFF     ' FOR-Limit Speicher
+   'FREI_RAM   $70000 .... $7A3FF      ' freier RAM-Bereich A3FF 41983 Bytes (42kB)
 
    DATA_RAM = $7A400 '.... $7E3FF      ' 16kB DATA-Speicher
 
@@ -185,7 +192,7 @@ Hintergrundfarben
 var
    long sp, tp, nextlineloc, rv, curlineno, pauseTime                         'Goto,Gosub-Zähler,Kommandozeile,Zeilenadresse,Random-Zahl,aktuelle Zeilennummer, Pausezeit
    long stack[maxstack],speicheranfang,speicherende                           'Gosub,Goto-Puffer,Startadresse-und Endadresse des Basic-Programms
-   long forStep[26], forLimit[26], forLoop[26]                                'Puffer für For-Next Schleifen
+'   long forStep[26], forLimit[26], forLoop[26]                                'Puffer für For-Next Schleifen
    long prm[10]                                                               'Befehlszeilen-Parameter-Feld (hier werden die Parameter der einzelnen Befehle eingelesen)
    long gototemp,gotobuffer,gosubtemp,gosubbuffer                             'Gotopuffer um zu verhindern das bei Schleifen immer der Gesamte Programmspeicher nach der Zeilennummer durchsucht werden muss
    long datapointer                                                           'aktueller Datapointer
@@ -2067,7 +2074,7 @@ pub Load_Gmode(n)
     close
 
 con '***************************************** Befehlsabarbeitung ****************************************************************************************************************
-PRI texec | ht, nt, restart,a,b,c,d,e,f,h,elsa,fvar,tab_typ
+PRI texec | ht, nt, restart,a,b,c,d,e,f,h,elsa,fvar,tab_typ,e_step,f_limit,g_loop
 
 
    bytefill(@f0,0,STR_MAX)
@@ -2447,23 +2454,30 @@ PRI texec | ht, nt, restart,a,b,c,d,e,f,h,elsa,fvar,tab_typ
                 if not isvar(ht) or nt <> "="
                    errortext(19,1)
                 skipspaces
-
                 varis_neu(a,expr(0),1,0,0,0,VAR_TBL)
                 if spaces <> 155                                                 'TO Save FOR limit
                    errortext(28,1)
                 skipspaces
-                forLimit[a] := expr(0)
+                f_limit:= expr(0)
+                ios.ram_wrlong(f_limit,FOR_LIMIT+(a*4))
+
+                'forLimit[a] := expr(0)
                 if spaces == 156 ' STEP                                          'Save step size
                    skipspaces
-                   forStep[a] := expr(0)
+                   e_step:=expr(0)
+                   'forStep[a] := expr(0)
                 else
-                   forStep[a] := fl.ffloat(1)                                    'Default step is 1
-                forLoop[a] := nextlineloc                                        'Save address of line
+                   e_step:=fl.ffloat(1)
+                   'forStep[a] := fl.ffloat(1)                                    'Default step is 1
+                'forLoop[a] := nextlineloc                                        'Save address of line
+                ios.ram_wrlong(e_step,FOR_STEP+(a*4))
+                ios.ram_wrlong(nextlineloc,FOR_LOOP+(a*4))
+
                 c:=varis_neu(a,0,0,0,0,0,VAR_TBL)
-                if forStep[a] < 0                                                'following the FOR
-                   b := fl.Fcmp(c,forLimit[a])'c=>forLimit[a]
+                if e_step < 0                                                'following the FOR
+                   b := fl.Fcmp(c,f_limit)'c=>forLimit[a]
                 else                                                             'Initially past the limit?
-                   b := fl.Fcmp(forLimit[a],c)'c=< forLimit[a]
+                   b := fl.Fcmp(f_limit,c)'c=< forLimit[a]
                 if not b                                                         'Search for matching NEXT
                    repeat while nextlineloc < speicherende-2
                       curlineno := ios.ram_rdword(nextlineloc)
@@ -2483,15 +2497,20 @@ PRI texec | ht, nt, restart,a,b,c,d,e,f,h,elsa,fvar,tab_typ
                    errortext(19,1)
                 skipspaces
                 a := readvar_name(nt)'fixvar(nt)
+                e_step:=ios.ram_rdlong(FOR_STEP+(a*4))
+                f_limit:=ios.ram_rdlong(FOR_LIMIT+(a*4))
                 c:=varis_neu(a,0,0,0,0,0,VAR_TBL)
-                h:=fl.fadd(c,forStep[a])                                         'Increment or decrement the
-                varis_neu(a,h,1,0,0,0,VAR_TBL)                                               'neuen wert fuer vars[a]
-                if forStep[a] < 0                                                'FOR variable and check for
-                   b := fl.Fcmp(h,forLimit[a]) 'h=> forLimit[a]
-                else                                                             'the limit value
-                   b := fl.Fcmp(forLimit[a],h)
-                if b==1 or b==0                                                  'If continuing loop, go to
-                   nextlineloc := forLoop[a]                                     'statement after FOR
+                g_loop:=ios.ram_rdlong(FOR_LOOP+(a*4))
+
+                h:=fl.fadd(c,e_step)                                            'Increment or decrement the
+
+                varis_neu(a,h,1,0,0,0,VAR_TBL)                                  'neuen wert fuer vars[a]
+                if e_step < 0                                                   'FOR variable and check for
+                   b := fl.Fcmp(h,f_limit)                                      'h=> forLimit[a]
+                else                                                            'the limit value
+                   b := fl.Fcmp(f_limit,h)
+                if b==1 or b==0                                                 'If continuing loop, go to
+                   nextlineloc := g_loop                                        'statement after FOR
                    quit
 
              158:'SID
