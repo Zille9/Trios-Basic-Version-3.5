@@ -54,6 +54,9 @@ Logbuch         :
                 -Fehler wurde bei der Arbeit am Tiny-Basic entdeckt und von dort übernommen
                 -815 Longs frei
 
+09-04-2021      -Fehler in REM-Befehl behoben -> wurde bei PRINT als Fehler behandelt
+                -814 Longs frei
+
  --------------------------------------------------------------------------------------------------------- }}
 
 obj
@@ -297,6 +300,7 @@ dat
    tok11 byte "RND", 0       'Zufallszahl von x                                            '139    getestet
    tok46 byte "PI",0          'Kreiszahl PI                                                '174    getestet
    tok83 byte "FN",0       'mathematische Benutzerfunktionen                                211    getestet
+
    tok117 byte "ABS",0                                               '                      245    getestet
    tok118 byte "SIN",0                                                                     '246    getestet
    tok119 byte "COS",0                                                                     '247    getestet
@@ -1486,7 +1490,8 @@ PRI factor | tok, a,b,c,d,e,g,f,fnum                                            
              fnum:=readvar_name(tok)
              c:=getvar(fnum,VAR_TBL)
              return c                                                              'und zurueckgeben
-
+      135:'REM
+           return
       152:'GFile                                                                'Ausgabe Anzahl, mit Dir-Filter gefundener Dateieintraege
           ifnot spaces
                 return fl.ffloat(filenumber)
