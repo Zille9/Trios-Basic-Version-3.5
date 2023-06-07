@@ -108,7 +108,7 @@ _XINFREQ     = 5_000_000
 
    PMARK_RAM = $7FFF0                  ' Flag für Reclaim           Wert= 161
    BMARK_RAM = $7FFF1                  ' Flag für Basic-Warm-Start  Wert= 121
-   SMARK_RAM = $7FFF2                  ' Flag für übergebenen Startparameter Wert = 222
+   SMARK_RAM = $7FFF2                  ' Flag für übergebenen Startparameter Wert = 222Ó
    MMARK_RAM = $7FFF3                  ' Flag für Grafikmode
 
    STR_ARRAY = $80000 '....$EE7FF      ' Variablen und Stringarray-Speicher
